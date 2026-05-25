@@ -30,6 +30,17 @@ class FactStatus(str, enum.Enum):
     UNKNOWN = "unknown"
 
 
+class ControlState(str, enum.Enum):
+    """Rolled-up posture for one (insured, control). Mirrors the SQL
+    control_state_kind enum in migrations/0003_control_model.sql."""
+
+    COMPLIANT = "compliant"
+    DRIFTED = "drifted"
+    DEGRADED = "degraded"
+    UNKNOWN = "unknown"
+    STALE = "stale"
+
+
 def _utcnow() -> dt.datetime:
     return dt.datetime.now(dt.timezone.utc)
 

@@ -13,5 +13,8 @@ migrate:
 demo:
 	python scripts/demo_phase0.py
 
+demo-evaluate:
+	python scripts/demo_evaluate.py
+
 test:
 	pytest -q

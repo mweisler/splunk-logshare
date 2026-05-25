@@ -11,6 +11,7 @@ from __future__ import annotations
 import abc
 import base64
 import hashlib
+import hmac
 import json
 from typing import Any
 
@@ -51,6 +52,23 @@ class LocalEd25519Signer(Signer):
             return True
         except InvalidSignature:
             return False
+
+
+class HmacSigner(Signer):
+    """Symmetric HMAC-SHA256 signer using only the stdlib. Useful where the
+    asymmetric crypto backend is unavailable, or for a lightweight dev/CI mode.
+    Note: HMAC is symmetric, so the verifier holds the same secret -- prefer the
+    KMS/Ed25519 signer when non-repudiation matters."""
+
+    def __init__(self, key: bytes = b"dev-secret", key_id: str = "hmac-dev") -> None:
+        self._key = key
+        self.key_id = key_id
+
+    def sign(self, data: bytes) -> bytes:
+        return hmac.new(self._key, data, hashlib.sha256).digest()
+
+    def verify(self, data: bytes, signature: bytes) -> bool:
+        return hmac.compare_digest(self.sign(data), signature)
 
 
 def _canonical(payload: dict[str, Any]) -> bytes:
