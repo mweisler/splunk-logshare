@@ -16,5 +16,8 @@ demo:
 demo-evaluate:
 	python scripts/demo_evaluate.py
 
+demo-packet:
+	python scripts/demo_packet.py
+
 test:
 	pytest -q

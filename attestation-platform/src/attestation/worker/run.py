@@ -17,13 +17,22 @@ from ..connectors.base import CollectionContext
 from ..core.ledger import Signer
 from ..core.models import Cursor
 from ..core.facts import ingest_fact
+from ..core.secrets import resolve_secret
 
 
-def run_connector(conn: Any, connector_id: str, signer: Signer) -> dict[str, Any]:
+def run_connector(
+    conn: Any,
+    connector_id: str,
+    signer: Signer,
+    connector_instance: Any = None,
+) -> dict[str, Any]:
+    """Run one connector and ingest every fact it yields. ``connector_instance``
+    is an escape hatch for tests / integrations that need to inject a pre-built
+    connector (e.g. an M365 connector with a fake HTTP transport)."""
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT insured_org_id, connector_type, secret_ref, cursor
+            SELECT insured_org_id, connector_type, config, secret_ref, cursor
             FROM connectors WHERE id = %s
             """,
             (connector_id,),
@@ -31,12 +40,10 @@ def run_connector(conn: Any, connector_id: str, signer: Signer) -> dict[str, Any
         row = cur.fetchone()
     if row is None:
         raise LookupError(f"connector {connector_id} not found")
-    insured_org_id, connector_type, secret_ref, cursor_data = row
+    insured_org_id, connector_type, config, secret_ref, cursor_data = row
 
-    connector = get(connector_type)()
-    # TODO: resolve secret_ref against the vault; noop ignores it.
-    secret = {"secret_ref": secret_ref}
-    session = connector.authenticate(secret)
+    connector = connector_instance if connector_instance is not None else get(connector_type)()
+    session = connector.authenticate(config or {}, resolve_secret(secret_ref))
 
     run_id = str(uuid.uuid4())
     ctx = CollectionContext(

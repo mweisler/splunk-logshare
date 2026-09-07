@@ -26,7 +26,9 @@ class NoopConnector(Connector):
     def __init__(self) -> None:
         self._cursor = Cursor()
 
-    def authenticate(self, secret: dict[str, Any]) -> Session:
+    def authenticate(
+        self, config: dict[str, Any], secret: dict[str, Any]
+    ) -> Session:
         return _NoopSession()
 
     def discover(self, session: Session) -> list[Subject]:

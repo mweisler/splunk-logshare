@@ -71,11 +71,15 @@ class HmacSigner(Signer):
         return hmac.compare_digest(self.sign(data), signature)
 
 
-def _canonical(payload: dict[str, Any]) -> bytes:
-    """Deterministic JSON so the same logical payload always hashes the same."""
+def canonical_json(payload: dict[str, Any]) -> bytes:
+    """Deterministic JSON so the same logical payload always hashes the same.
+    Public because attestation packets sign the same way (see packet.build)."""
     return json.dumps(
         payload, sort_keys=True, separators=(",", ":"), default=str
     ).encode("utf-8")
+
+
+_canonical = canonical_json  # backwards-compatible alias
 
 
 def compute_entry_hash(prev_hash: str, entry_type: str, payload: dict[str, Any]) -> str:

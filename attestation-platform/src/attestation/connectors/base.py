@@ -67,8 +67,11 @@ class Connector(abc.ABC):
     capabilities: frozenset[str]
 
     @abc.abstractmethod
-    def authenticate(self, secret: dict[str, Any]) -> Session:
-        """Exchange a vault secret for a live API session."""
+    def authenticate(
+        self, config: dict[str, Any], secret: dict[str, Any]
+    ) -> Session:
+        """Exchange non-secret config (tenant id, endpoints, ...) and a vault
+        secret (client secret, refresh token, ...) for a live API session."""
 
     @abc.abstractmethod
     def discover(self, session: Session) -> list[Subject]:
