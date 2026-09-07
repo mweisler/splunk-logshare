@@ -18,8 +18,9 @@ def connect() -> Any:
 @contextmanager
 def request_scope(conn: Any, user_id: str | None) -> Iterator[Any]:
     """Bind the current user for RLS for the duration of the block."""
+    # Postgres SET can't be parameterized; set_config() is the parameterized form.
     with conn.cursor() as cur:
-        cur.execute("SET app.current_user_id = %s", (user_id or "",))
+        cur.execute("SELECT set_config('app.current_user_id', %s, false)", (user_id or "",))
     try:
         yield conn
     finally:
